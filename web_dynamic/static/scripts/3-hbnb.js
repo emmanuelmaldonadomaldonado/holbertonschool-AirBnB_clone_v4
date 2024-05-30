@@ -1,67 +1,52 @@
-document.addEventListener('DOMContentLoaded', function () {
-  const apiStatus = document.getElementById('api_status');
-  const placesSection = document.querySelector('.places');
+document.addEventListener('DOMContentLoaded', (event) => {
+    const apiUrl = 'http://0.0.0.0:5001/api/v1/places_search';
 
-  // Check API status
-  fetch('http://0.0.0.0:5001/api/v1/status/')
-      .then(response => response.json())
-      .then(data => {
-          if (data.status === 'OK') {
-              apiStatus.classList.add('available');
-          } else {
-              apiStatus.classList.remove('available');
-          }
-      })
-      .catch(() => {
-          apiStatus.classList.remove('available');
-      });
+    // Verificar el estado del API
+    fetch('http://0.0.0.0:5001/api/v1/status/')
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'OK') {
+                document.getElementById('api_status').classList.add('available');
+            } else {
+                document.getElementById('api_status').classList.remove('available');
+            }
+        });
 
-  // Fetch places
-  fetch('http://0.0.0.0:5001/api/v1/places_search/', {
-      method: 'POST',
-      headers: {
-          'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({})
-  })
-  .then(response => response.json())
-  .then(data => {
-      data.forEach(place => {
-          const article = document.createElement('article');
-          const titleBox = document.createElement('div');
-          titleBox.className = 'title_box';
-          const h2 = document.createElement('h2');
-          h2.textContent = place.name;
-          const price = document.createElement('div');
-          price.className = 'price_by_night';
-          price.textContent = `$${place.price_by_night}`;
-          titleBox.appendChild(h2);
-          titleBox.appendChild(price);
+    // Solicitar lugares
+    fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({})
+    })
+    .then(response => response.json())
+    .then(data => {
+        const placesSection = document.querySelector('section.places');
+        placesSection.innerHTML = ''; // Clear previous places
 
-          const information = document.createElement('div');
-          information.className = 'information';
-          const maxGuest = document.createElement('div');
-          maxGuest.className = 'max_guest';
-          maxGuest.textContent = `${place.max_guest} Guest${place.max_guest !== 1 ? 's' : ''}`;
-          const numberRooms = document.createElement('div');
-          numberRooms.className = 'number_rooms';
-          numberRooms.textContent = `${place.number_rooms} Bedroom${place.number_rooms !== 1 ? 's' : ''}`;
-          const numberBathrooms = document.createElement('div');
-          numberBathrooms.className = 'number_bathrooms';
-          numberBathrooms.textContent = `${place.number_bathrooms} Bathroom${place.number_bathrooms !== 1 ? 's' : ''}`;
-          information.appendChild(maxGuest);
-          information.appendChild(numberRooms);
-          information.appendChild(numberBathrooms);
+        data.forEach(place => {
+            const article = document.createElement('article');
 
-          const description = document.createElement('div');
-          description.className = 'description';
-          description.textContent = place.description;
+            const title = document.createElement('div');
+            title.className = 'title_box';
+            title.innerHTML = `<h2>${place.name}</h2><div class="price_by_night">$${place.price_by_night}</div>`;
 
-          article.appendChild(titleBox);
-          article.appendChild(information);
-          article.appendChild(description);
-          placesSection.appendChild(article);
-      });
-  })
-  .catch(error => console.error('Error:', error));
+            const information = document.createElement('div');
+            information.className = 'information';
+            information.innerHTML = `<div class="max_guest">${place.max_guest} Guests</div>
+                                     <div class="number_rooms">${place.number_rooms} Bedrooms</div>
+                                     <div class="number_bathrooms">${place.number_bathrooms} Bathrooms</div>`;
+
+            const description = document.createElement('div');
+            description.className = 'description';
+            description.innerText = place.description;
+
+            article.appendChild(title);
+            article.appendChild(information);
+            article.appendChild(description);
+
+            placesSection.appendChild(article);
+        });
+    });
 });
